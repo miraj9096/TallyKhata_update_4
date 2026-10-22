@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidTimestamp(val) {
+      return val is timestamp && val <= request.time;
+    }
+
+    function isValidCustomer(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        (!('phone' in data) || data.phone is string) &&
+        (!('address' in data) || data.address is string) &&
+        (data.type == 'CUSTOMER' || data.type == 'SUPPLIER') &&
+        data.totalGave is number && data.totalGave >= 0 &&
+        data.totalGot is number && data.totalGot >= 0 &&
+        data.netBalance is number &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidTransaction(data) {
+      return data.customerId is string && data.customerId.size() > 0 &&
+        (!('customerName' in data) || data.customerName is string) &&
+        (data.type == 'GAVE' || data.type == 'GOT') &&
+        data.amount is number && data.amount > 0 &&
+        (!('note' in data) || data.note is string) &&
+        (!('billNumber' in data) || data.billNumber is string) &&
+        data.transactionDate is timestamp &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCashEntry(data) {
+      return (data.type == 'CASH_IN' || data.type == 'CASH_OUT') &&
+        data.amount is number && data.amount > 0 &&
+        (!('category' in data) || data.category is string) &&
+        (!('note' in data) || data.note is string) &&
+        data.entryDate is timestamp &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidBusinessProfile(data) {
+      return data.businessName is string && data.businessName.size() > 0 && data.businessName.size() <= 100 &&
+        (!('ownerName' in data) || data.ownerName is string) &&
+        (!('phone' in data) || data.phone is string) &&
+        (!('email' in data) || data.email is string) &&
+        data.currency is string && data.currency.size() > 0 && data.currency.size() <= 10 &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /customers/{customerId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidCustomer(request.resource.data);
+        allow update: if isOwner(userId) && isValidCustomer(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidTransaction(request.resource.data);
+        allow update: if isOwner(userId) && isValidTransaction(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /cashbook/{entryId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidCashEntry(request.resource.data);
+        allow update: if isOwner(userId) && isValidCashEntry(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+
+      match /profile/{profileId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidBusinessProfile(request.resource.data);
+        allow update: if isOwner(userId) && isValidBusinessProfile(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "entities": {
+    "Customer": {
+      "title": "Customer",
+      "description": "A customer or supplier party with debt/credit tracking",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Full name or party name"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number"
+        },
+        "address": {
+          "type": "string",
+          "description": "Address or location note"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["CUSTOMER", "SUPPLIER"],
+          "description": "Party type"
+        },
+        "totalGave": {
+          "type": "number",
+          "description": "Total credit given to party"
+        },
+        "totalGot": {
+          "type": "number",
+          "description": "Total payment received from party"
+        },
+        "netBalance": {
+          "type": "number",
+          "description": "Net balance (totalGave - totalGot)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when party was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when party was last updated"
+        }
+      },
+      "required": ["name", "type", "totalGave", "totalGot", "netBalance", "createdAt", "updatedAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A credit or debit entry linked to a customer",
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string",
+          "description": "Linked customer ID"
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Cached customer name for quick display"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["GAVE", "GOT"],
+          "description": "Transaction type (GAVE = credit given, GOT = payment received)"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Transaction amount (must be positive)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Transaction details or item notes"
+        },
+        "billNumber": {
+          "type": "string",
+          "description": "Optional invoice or bill number"
+        },
+        "transactionDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date and time of transaction"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when recorded"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated"
+        }
+      },
+      "required": ["customerId", "type", "amount", "transactionDate", "createdAt", "updatedAt"]
+    },
+    "CashEntry": {
+      "title": "CashEntry",
+      "description": "Daily cash in hand register entry for counter sales or expenses",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["CASH_IN", "CASH_OUT"],
+          "description": "Type of cash flow"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Cash amount (must be positive)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category (e.g. Sales, Rent, Tea, Goods, Salary)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Additional remarks"
+        },
+        "entryDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date of the cash entry"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when recorded"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated"
+        }
+      },
+      "required": ["type", "amount", "entryDate", "createdAt", "updatedAt"]
+    },
+    "BusinessProfile": {
+      "title": "BusinessProfile",
+      "description": "Store settings and business profile",
+      "type": "object",
+      "properties": {
+        "businessName": {
+          "type": "string",
+          "description": "Store or shop name"
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Business owner name"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Business contact phone"
+        },
+        "email": {
+          "type": "string",
+          "description": "Business contact email"
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency symbol"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Update timestamp"
+        }
+      },
+      "required": ["businessName", "currency", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/customers/{customerId}": {
+      "schema": { "$ref": "#/entities/Customer" },
+      "description": "Customers and suppliers ledger profiles for user"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Customer credit and debit transactions for user"
+    },
+    "/users/{userId}/cashbook/{entryId}": {
+      "schema": { "$ref": "#/entities/CashEntry" },
+      "description": "Daily cash flow register entries for user"
+    },
+    "/users/{userId}/profile/{profileId}": {
+      "schema": { "$ref": "#/entities/BusinessProfile" },
+      "description": "Business profile settings for user"
+    }
+  }
+}

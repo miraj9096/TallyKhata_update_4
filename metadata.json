@@ -1,0 +1,8 @@
+{
+  "name": "Tally Khata",
+  "description": "Digital ledger and credit-debit manager for small business owners to track customer debts and daily transactions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
